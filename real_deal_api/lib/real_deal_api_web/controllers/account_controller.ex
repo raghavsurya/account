@@ -1,8 +1,8 @@
 defmodule RealDealApiWeb.AccountController do
   use RealDealApiWeb, :controller
 
-  alias RealDealApi.Accounts
-  alias RealDealApi.Accounts.Account
+  alias RealDealApi.{Accounts, Accounts.Account, Users, Users.User}
+  alias RealDealApiWeb.Auth.Guardian
 
   action_fallback RealDealApiWeb.FallbackController
 
@@ -12,11 +12,13 @@ defmodule RealDealApiWeb.AccountController do
   end
 
   def create(conn, %{"account" => account_params}) do
-    with {:ok, %Account{} = account} <- Accounts.create_account(account_params) do
+    with {:ok, %Account{} = account} <- Accounts.create_account(account_params),
+          {:ok, token, _claims} <- Guardian.encode_and_sign(account),
+          {:ok, %User{} = user} <- Users.create_user(account, account_params) do
       conn
       |> put_status(:created)
      # |> put_resp_header("location", Routes.account_path(conn, :show, account))
-      |> render("show.json", account: account)
+      |> render("account_token.json", %{account: account, token: token})
     end
   end
 
