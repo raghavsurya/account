@@ -1,6 +1,7 @@
 defmodule RealDealApiWeb.Auth.GuardianErrorHandler do
   import Plug.Conn
 
+  @impl Guardian.Plug.ErrorHandler
   def auth_error(conn, {type, _reason}, _opts) do
     body = Jason.encode!(%{error: to_string(type)})
     conn
